@@ -1,0 +1,5 @@
+chromedriver_linux64.zip
+.vscode/**
+__pycache__/utils.cpython-310.pyc
+success.txt
+list.txt
