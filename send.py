@@ -18,6 +18,8 @@ umbrel_login_url = "http://192.168.0.63:8889/"
 
 driver = get_google_driver()
 
+success_int = 0
+
 
 def main():
     import os
@@ -44,9 +46,9 @@ def main():
     time.sleep(1)
 
     success_list = read_urls("./success.txt")
+    success_int = len(success_list)
 
-    print(f"Success list: {len(success_list)}")
-
+    int = 1
     with open("./list.txt") as infile:
         for url in infile:
             u = url.rsplit("/")[-1].replace("\n", "")
@@ -57,13 +59,13 @@ def main():
             clear = lambda: os.system("clear")
             clear()
 
-            print(f"Trying {u}...")
-            print(f"Success list: {len(success_list)}")
+            print(f"Success list: {success_int}")
 
             driver.get(umbrel_login_url)
             peer_input = driver.find_element(By.XPATH, '//input[@id="peer_id"]')
 
             try:
+                print(f"Trying {int} - {u}...")
                 peer_input.send_keys(f"{u}")
                 peer_input.send_keys(Keys.RETURN)
 
@@ -71,14 +73,15 @@ def main():
                     EC.element_to_be_clickable((By.XPATH, '//div[@id="messages"]'))
                 )
 
-                success = driver.find_element(By.XPATH, '//div[@id="messages"]')
-                text = success.text
-
-                print(f"Peer {u} {text}!")
+                success_msg = driver.find_element(By.XPATH, '//div[@id="messages"]')
+                text = success_msg.text
 
                 if "success" in text or "connected" in text:
+                    success_int += 1
+                    print(f"{text}")
                     write_urls(url, "./success.txt")
-
+                
+                int += 1
                 time.sleep(1)
             except Exception as e:
                 print(e)
