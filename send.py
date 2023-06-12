@@ -1,6 +1,7 @@
 import time
 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -19,6 +20,8 @@ driver = get_google_driver()
 
 
 def main():
+    import os
+
     driver.get(umbrel_login_url)
     wait = WebDriverWait(driver, 30)
 
@@ -41,35 +44,45 @@ def main():
     time.sleep(1)
 
     success_list = read_urls("./success.txt")
-    list = read_urls()
 
-    for url in list:
-        u = url.rsplit("/")[-1].replace("\n", "")
+    print(f"Success list: {len(success_list)}")
 
-        if url in success_list:
-            continue
+    with open("./list.txt") as infile:
+        for url in infile:
+            u = url.rsplit("/")[-1].replace("\n", "")
 
-        driver.get(umbrel_login_url)
-        peer_input = driver.find_element(By.XPATH, '//input[@id="peer_id"]')
-        peer_input.send_keys("")
+            if url in success_list:
+                continue
 
-        try:
-            peer_input.send_keys(f"{u}")
-            peer_input.submit()
+            clear = lambda: os.system("clear")
+            clear()
 
-            wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@id="messages"]')))
-            success = driver.find_element(By.XPATH, '//div[@id="messages"]')
-            text = success.text
+            print(f"Trying {u}...")
+            print(f"Success list: {len(success_list)}")
 
-            print(f"Peer {u} {text}!")
+            driver.get(umbrel_login_url)
+            peer_input = driver.find_element(By.XPATH, '//input[@id="peer_id"]')
 
-            if "success" in text or "connected" in text:
-                write_urls(url, "./success.txt")
+            try:
+                peer_input.send_keys(f"{u}")
+                peer_input.send_keys(Keys.RETURN)
 
-            time.sleep(1)
-        except Exception as e:
-            print(e)
-            continue
+                wait.until(
+                    EC.element_to_be_clickable((By.XPATH, '//div[@id="messages"]'))
+                )
+
+                success = driver.find_element(By.XPATH, '//div[@id="messages"]')
+                text = success.text
+
+                print(f"Peer {u} {text}!")
+
+                if "success" in text or "connected" in text:
+                    write_urls(url, "./success.txt")
+
+                time.sleep(1)
+            except Exception as e:
+                print(e)
+                continue
 
 
 main()
